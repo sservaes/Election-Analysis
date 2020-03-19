@@ -16,6 +16,7 @@ url = "http://elections.huffingtonpost.com/pollster/2016-general-election-trump-
 source = requests.get(url).text
 poll_data = StringIO(source)
 poll_df = pd.read_csv(poll_data)
+poll_df.drop('Question Iteration', axis = 1, inplace = True)
 
 # %% get info
 
@@ -55,3 +56,47 @@ poll_avg = pd.concat([avg, std], axis = 1)
 poll_avg.columns = ['Average', 'STD']
 
 poll_avg.head()
+
+# %% time analysis
+
+poll_df.head()
+poll_df[['Trump', 'Clinton', 'Undecided']].plot(linestyle = '', marker = 'o', figsize = (20, 8))
+
+# %% Calculate difference
+
+from datetime import datetime
+
+poll_df['Difference'] = (poll_df['Trump'] - poll_df['Clinton'])/100
+
+poll_df.head()
+
+# %% group Difference
+
+poll_df_group = poll_df.groupby(['Start Date'], as_index = False).mean()
+
+poll_df_group.head()
+
+# %% plot Difference
+
+poll_df_group.plot('Start Date', 'Difference', figsize = (20,4), marker = 'o', linestyle = '-', color = 'blue')
+
+# %% look at october 2012
+row_in = 0
+xlimit = []
+
+for date in poll_df_group['Start Date']:
+    if date[0:7] == '2016-10':
+        xlimit.append(row_in)
+        row_in += 1
+    else:
+        row_in += 1
+
+print(min(xlimit))
+print(max(xlimit))
+
+# %% plot october 2012
+
+poll_df_group.plot('Start Date', 'Difference', figsize = (20,4), marker = 'o', linestyle = '-', color = 'blue', xlim = (232, 262))
+plt.axvline(x = 232 + 2, linewidth = 4, color = 'red')
+plt.axvline(x = 232 + 10, linewidth = 4, color = 'red')
+plt.axvline(x = 232 + 21, linewidth = 4, color = 'red')
